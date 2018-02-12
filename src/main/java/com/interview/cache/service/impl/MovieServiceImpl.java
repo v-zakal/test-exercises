@@ -43,12 +43,11 @@ public class MovieServiceImpl implements MovieService {
 
         try {
             dbAccessLock.lock();
+            final Optional<Movie> movieInCacheOpt = findMovieByRankInCacheSafety(rank);
+            final Optional<Movie> movieOpt = movieInCacheOpt.isPresent() ?  movieInCacheOpt : movieRepo.findOneByRank(rank);
+            movieOpt.ifPresent(movie -> putMovieInCacheSafety(rank, movie));
 
-            final Optional<Movie> movieOptional = movieRepo.findOneByRank(rank);
-
-            movieOptional.ifPresent(movie -> putMovieInCacheSafety(rank, movie));
-
-            return movieOptional;
+            return movieOpt;
         } finally {
             dbAccessLock.unlock();
         }
