@@ -18,7 +18,7 @@ import java.util.concurrent.locks.Lock;
 
 @Service
 public class MovieServiceImpl implements MovieService {
-    private final static Logger LOG = LoggerFactory.getLogger(ExceptionHandlingControllersAdvice.class);
+    private final static Logger LOG = LoggerFactory.getLogger(MovieServiceImpl.class);
 
     private final LockRegistry distributedLockRegistry;
     private final MovieRepository movieRepo;
