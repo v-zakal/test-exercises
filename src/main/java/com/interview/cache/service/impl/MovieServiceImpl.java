@@ -5,7 +5,6 @@ import com.interview.cache.integration.redis.util.LockRegistry;
 import com.interview.cache.model.dao.Movie;
 import com.interview.cache.model.repository.mongo.MovieRepository;
 import com.interview.cache.service.MovieService;
-import com.interview.cache.web.controller.ExceptionHandlingControllersAdvice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,9 +32,9 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public Optional<Movie> findMovieByRank(int rank) {
-        final Optional<Movie> movieByRankInCache = findMovieByRankInCacheSafety(rank);
-
-        return movieByRankInCache.isPresent() ? movieByRankInCache : findMovieByRankWithDbLock(rank);
+        return findMovieByRankInCacheSafety(rank)
+                .map(Optional::of)
+                .orElseGet(() -> findMovieByRankWithDbLock(rank));
     }
 
     private Optional<Movie> findMovieByRankWithDbLock(final int rank) {
@@ -43,11 +42,13 @@ public class MovieServiceImpl implements MovieService {
 
         try {
             dbAccessLock.lock();
-            final Optional<Movie> movieInCacheOpt = findMovieByRankInCacheSafety(rank);
-            final Optional<Movie> movieOpt = movieInCacheOpt.isPresent() ?  movieInCacheOpt : movieRepo.findOneByRank(rank);
-            movieOpt.ifPresent(movie -> putMovieInCacheSafety(rank, movie));
-
-            return movieOpt;
+            return findMovieByRankInCacheSafety(rank)
+                    .map(Optional::of)
+                    .orElseGet(() -> movieRepo.findOneByRank(rank))
+                    .map(movie -> {
+                        putMovieInCacheSafety(rank, movie);
+                        return movie;
+                    });
         } finally {
             dbAccessLock.unlock();
         }
