@@ -16,4 +16,4 @@ curl -X POST -H "Content-Type: application/json" -d '{"rank":255}' localhost:808
 ### Validation error (http status 400)
 curl -X POST -H "Content-Type: application/json" -d '{"rank":256}' localhost:8080/getMovieByRank
 
-{"code":400,"message":"rank : [must be less than or equal to 255]","path":"/getMovieByRank"}
+{"code":400,"message":"rank : \[must be less than or equal to 255\]","path":"/getMovieByRank"}
